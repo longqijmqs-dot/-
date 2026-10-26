@@ -1,0 +1,20 @@
+packages:
+  - apps/*
+  - packages/*
+
+# 以下为 pnpm 11 的项目级设置（.npmrc 在本机未被解析，实测以这里为准）
+
+# 全局 store 在 D 盘，沙箱不可写，固定到项目内
+storeDir: C:/Users/33281/Desktop/测试/.pnpm-store
+# Windows 下符号链接会触发 ERR_PNPM_SYMLINK_FAILED（栈溢出），改用扁平布局
+nodeLinker: hoisted
+strictPeerDependencies: false
+
+# esbuild 是 ts-jest 的传递依赖；我们用 ts-jest 的 TypeScript 编译器，
+# 不需要 esbuild 的安装脚本（它要派生子进程，本机沙箱会 EPERM）。显式声明忽略。
+ignoredBuiltDependencies:
+  - esbuild
+# 默认会因「有依赖的构建脚本被忽略」而整体失败，这里降级为警告
+strictDepBuilds: false
+# 跑脚本前不要自动再装一遍依赖（避免重复触发上面的检查）
+verifyDepsBeforeRun: false

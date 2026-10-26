@@ -5,5 +5,7 @@ coverage/
 .env.local
 storage/
 .tmp/
+.pnpm-store/
+.pnpm-cache/
 *.log
 .DS_Store
