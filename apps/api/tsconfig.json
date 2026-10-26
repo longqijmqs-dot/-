@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node10",
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "noEmit": true,
+    "types": ["node", "jest"],
+    "baseUrl": ".",
+    "paths": {
+      "@app/contract": ["../../packages/contract/src/index.ts"],
+      "@app/contract/*": ["../../packages/contract/src/*"],
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "prisma/**/*.ts"]
+}

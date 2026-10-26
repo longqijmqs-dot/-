@@ -7,8 +7,15 @@
     "node": ">=22"
   },
   "scripts": {
+    "dev:api": "pnpm --filter @app/api start:dev",
+    "build:api": "pnpm --filter @app/api build",
+    "start:api": "pnpm --filter @app/api start",
     "test": "pnpm -r --if-present test",
-    "typecheck": "pnpm -r --if-present typecheck"
+    "typecheck": "pnpm -r --if-present typecheck",
+    "db:generate": "pnpm --filter @app/api prisma:generate",
+    "db:migrate": "pnpm --filter @app/api prisma:migrate",
+    "db:studio": "pnpm --filter @app/api prisma:studio",
+    "db:seed": "pnpm --filter @app/api db:seed"
   },
   "devDependencies": {
     "typescript": "^5.7.3"

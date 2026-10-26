@@ -42,18 +42,24 @@ wsl -l -v
 
 ## 第 3 步：换成国内 apt 源（否则后面装东西会巨慢）
 
-在 **Debian 窗口**里执行（会要密码）：
+> 实测：从 Store 装的 Debian 是 **11 (bullseye)**，不是 12。不影响，Docker 官方支持
+> bullseye；命令里的 `$(. /etc/os-release && echo $VERSION_CODENAME)` 会自动取对代号。
+>
+> 另外会看到一条警告：
+> `wsl: 检测到 localhost 代理配置，但未镜像到 WSL。NAT 模式下的 WSL 不支持 localhost 代理。`
+> **这是正常的**：WSL 里的 `127.0.0.1` 指 WSL 自己，碰不到 Windows 上的代理。
+> apt 走阿里云直连不受影响；Docker 拉镜像靠第 5 步的加速站解决。
 
 ```bash
 # 先备份原源
 sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
 
-# 替换为阿里云镜像（Debian 12 bookworm）
-sudo sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list
+# 替换为阿里云镜像——注意要替换三个域名，漏一个就会报 404
+sudo sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors.aliyun.com|g; s|ftp.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list
 sudo apt-get update
 ```
 
-预期：能正常拉取索引，不再有大量超时。
+预期：不再出现 `Err:` 行。若仍有，执行 `grep -n 'http' /etc/apt/sources.list` 看哪一行漏了。
 
 ## 第 4 步：安装 Docker（走阿里云源，因为官方源在你网络下不可达）
 

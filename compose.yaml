@@ -1,0 +1,58 @@
+name: ai-chat-platform
+
+# 只把「依赖服务」放进容器：MySQL（仓库）与 Redis（便签本）。
+# 应用本身仍在 Windows 侧用 pnpm 跑，热重载体验好。
+# WSL2 默认会把容器端口映射到 Windows 的 localhost，因此 Windows 上的
+# NestJS 直接连 localhost:3306 / localhost:6379 即可。
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: aichat-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Asia/Shanghai
+    command:
+      # 统一字符集与时区，避免中文乱码、时间差 8 小时这两类经典事故
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+08:00
+    ports:
+      - '${MYSQL_PORT:-3306}:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      # 注意：必须用 127.0.0.1 而不是 localhost，否则容器内会走 socket 导致误判
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-u', 'root', '-p${MYSQL_ROOT_PASSWORD}']
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: aichat-redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - 'yes'
+      - --requirepass
+      - ${REDIS_PASSWORD}
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 24
+
+volumes:
+  mysql-data:
+  redis-data:

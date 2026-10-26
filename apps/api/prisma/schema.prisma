@@ -1,0 +1,47 @@
+// Prisma schema —— 数据模型的唯一来源
+// 表名与字段名统一用 snake_case（MySQL 惯例），代码里用 camelCase，
+// 通过 @map / @@map 做映射，避免 SQL 里到处反引号。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// 角色表：RBAC 的基础。permissions 用 JSON 存细粒度权限码，
+/// 当前只有 admin / user 两个角色，权限判断先走 code。
+model Role {
+  id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  code        String   @unique @db.VarChar(32)
+  name        String   @db.VarChar(64)
+  permissions Json?
+  createdAt   DateTime @default(now()) @map("created_at") @db.DateTime(3)
+
+  users User[]
+
+  @@map("roles")
+}
+
+/// 用户表。
+/// 注意：id 用 BigInt，序列化成 JSON 时必须是字符串，
+/// 否则超过 2^53 会精度丢失（契约包里 PublicUser.id 定义成 string 就是这个原因）。
+model User {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  nickname     String?   @db.VarChar(64)
+  roleId       BigInt    @map("role_id") @db.UnsignedBigInt
+  /// 1 启用 / 0 禁用
+  status       Int       @default(1) @db.TinyInt
+  lastLoginAt  DateTime? @map("last_login_at") @db.DateTime(3)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.DateTime(3)
+
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@index([roleId])
+  @@map("users")
+}
