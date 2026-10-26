@@ -7,7 +7,12 @@ import {
   Res,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import {
   type LoginInput,
@@ -18,6 +23,7 @@ import {
 } from '@app/contract';
 import type { Response } from 'express';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
+import { zodToOpenApiSchema } from '../common/zod-openapi';
 import type { RequestUser } from './auth.types';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -43,6 +49,9 @@ export class AuthController {
   @Post('register')
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @ApiOperation({ summary: '注册（邮箱 + 密码），默认分配 user 角色' })
+  // 请求体从契约的 zod schema 自动生成 —— zod 是「值」不是「类」，
+  // 不显式声明的话 Swagger 会显示 No parameters，Try it out 也没有输入框
+  @ApiBody({ schema: zodToOpenApiSchema(RegisterSchema) })
   async register(
     @Body(new ZodValidationPipe(RegisterSchema)) input: RegisterInput,
   ): Promise<PublicUser> {
@@ -54,6 +63,7 @@ export class AuthController {
   @HttpCode(200)
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @ApiOperation({ summary: '登录：返回 access token，refresh token 写入 httpOnly Cookie' })
+  @ApiBody({ schema: zodToOpenApiSchema(LoginSchema) })
   async login(
     @Body(new ZodValidationPipe(LoginSchema)) input: LoginInput,
     @Res({ passthrough: true }) res: Response,

@@ -8,7 +8,15 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiProduces, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiProduces,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   type CursorResult,
   type Message,
@@ -25,6 +33,7 @@ import type { Request, Response } from 'express';
 import { ClsService } from 'nestjs-cls';
 import { getRequestId } from '../common/request-context';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
+import { zodToOpenApiSchema } from '../common/zod-openapi';
 import type { RequestUser } from '../auth/auth.types';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { MessagesService } from './messages.service';
@@ -40,6 +49,9 @@ export class MessagesController {
 
   @Get()
   @ApiOperation({ summary: '历史消息（游标分页，时间升序）' })
+  @ApiParam({ name: 'conversationId', description: '会话 id', schema: { type: 'string' } })
+  @ApiQuery({ name: 'limit', required: false, schema: { type: 'integer', minimum: 1, maximum: 100 }, description: '本页条数，默认 30' })
+  @ApiQuery({ name: 'before', required: false, schema: { type: 'integer', minimum: 1 }, description: '游标：只返回该消息 id 之前（更早）的消息' })
   list(
     @CurrentUser() user: RequestUser,
     @Param('conversationId') conversationId: string,
@@ -57,6 +69,8 @@ export class MessagesController {
   @Post()
   @ApiOperation({ summary: '发送消息，SSE 流式返回 AI 回复' })
   @ApiProduces('text/event-stream')
+  @ApiParam({ name: 'conversationId', description: '会话 id', schema: { type: 'string' } })
+  @ApiBody({ schema: zodToOpenApiSchema(SendMessageSchema) })
   async send(
     @CurrentUser() user: RequestUser,
     @Param('conversationId') conversationId: string,
