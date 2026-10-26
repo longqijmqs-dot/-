@@ -1,0 +1,60 @@
+:root {
+  --ink: #14161a;
+  --ink-soft: #4b5158;
+  --ink-faint: #8a8f97;
+  --paper: #f6f3ee;
+  --paper-2: #efe9e0;
+  --surface: #fffefb;
+  --line: #ded6c9;
+  --line-strong: #c9bfae;
+  --amber: #d39a2c;
+  --amber-deep: #a97715;
+  --danger: #b3261e;
+  --danger-bg: #fbeae8;
+  --radius: 10px;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--amber-deep);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

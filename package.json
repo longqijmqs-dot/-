@@ -7,6 +7,9 @@
     "node": ">=22"
   },
   "scripts": {
+    "dev": "concurrently -n api,web -c cyan,magenta \"pnpm dev:api\" \"pnpm dev:web\"",
+    "dev:web": "pnpm --filter @app/web dev",
+    "build:web": "pnpm --filter @app/web build",
     "build:contract": "pnpm --filter @app/contract build",
     "dev:api": "pnpm build:contract && pnpm --filter @app/api start:dev",
     "build:api": "pnpm build:contract && pnpm --filter @app/api build",
@@ -19,6 +22,7 @@
     "db:seed": "pnpm --filter @app/api db:seed"
   },
   "devDependencies": {
+    "concurrently": "^10.0.6",
     "typescript": "^5.7.3"
   }
 }
