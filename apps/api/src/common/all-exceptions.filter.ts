@@ -143,14 +143,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private resolveHttp(exception: HttpException): Resolved {
     const status = exception.getStatus();
     const code = httpStatusToCode(status);
-    // Nest 内部异常的 message 可能是对象，这里只取安全的人话
-    const raw = exception.getResponse();
-    const message =
-      status >= 500
-        ? messageFor(ErrorCode.INTERNAL_ERROR)
-        : typeof raw === 'string'
-          ? raw
-          : messageFor(code);
+    // 只用契约包里的中文文案，不透传框架原文：
+    // 一是避免出现 "ThrottlerException: Too Many Requests" 这种给用户看的话，
+    // 二是保证同一错误在不同接口措辞一致
+    const message = messageFor(code);
     return { status, code, message, data: null };
   }
 }

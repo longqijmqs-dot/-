@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { type MiddlewareConsumer, Module, type NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ClsModule } from 'nestjs-cls';
 import type { Request, Response } from 'express';
 import { loadEnv } from './config/env';
@@ -8,6 +10,7 @@ import { REQUEST_ID_KEY } from './common/request-context';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { HealthModule } from './health/health.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -38,9 +41,20 @@ import { HealthModule } from './health/health.module';
       },
     }),
 
+    /**
+     * 全局限流：默认 60 次/分钟。
+     * 登录/注册在控制器上用 @Throttle 覆盖成 5 次/分钟（见 auth.controller.ts）。
+     */
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 60 }]),
+
     PrismaModule,
     RedisModule,
     HealthModule,
+    AuthModule,
+  ],
+  providers: [
+    // 限流放在最前面：让明显超限的请求尽早被拒，不浪费鉴权和数据库开销
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule implements NestModule {

@@ -3,14 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "description": "前后端共享的唯一契约来源：响应信封、业务错误码、分页、认证 DTO",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "import": "./src/index.ts",
-      "default": "./src/index.ts"
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "test": "jest --runInBand",
     "typecheck": "tsc -p tsconfig.test.json --noEmit"
   },

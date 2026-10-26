@@ -7,8 +7,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev:api": "pnpm --filter @app/api start:dev",
-    "build:api": "pnpm --filter @app/api build",
+    "build:contract": "pnpm --filter @app/contract build",
+    "dev:api": "pnpm build:contract && pnpm --filter @app/api start:dev",
+    "build:api": "pnpm build:contract && pnpm --filter @app/api build",
     "start:api": "pnpm --filter @app/api start",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck",

@@ -13,11 +13,6 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "declaration": false,
-    "sourceMap": true,
-    "baseUrl": ".",
-    "paths": {
-      "@app/contract": ["./packages/contract/src/index.ts"],
-      "@app/contract/*": ["./packages/contract/src/*"]
-    }
+    "sourceMap": true
   }
 }

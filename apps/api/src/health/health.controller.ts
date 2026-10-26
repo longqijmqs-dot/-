@@ -2,6 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ErrorCode } from '@app/contract';
 import { AppError } from '../common/app-error';
+import { Public } from '../auth/decorators/public.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 
@@ -13,6 +14,7 @@ export class HealthController {
     private readonly redis: RedisService,
   ) {}
 
+  @Public()
   @Get()
   @ApiOperation({ summary: '健康检查：返回服务、数据库与 Redis 状态' })
   async check(): Promise<{ status: string; components: Record<string, string> }> {
