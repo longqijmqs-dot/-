@@ -7,9 +7,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "concurrently -n api,web -c cyan,magenta \"pnpm dev:api\" \"pnpm dev:web\"",
-    "dev:web": "pnpm --filter @app/web dev",
-    "build:web": "pnpm --filter @app/web build",
+    "dev": "pnpm build:contract && concurrently -n api,web -c cyan,magenta \"pnpm --filter @app/api start:dev\" \"pnpm --filter @app/web dev\"",
+    "dev:web": "pnpm build:contract && pnpm --filter @app/web dev",
+    "build:web": "pnpm build:contract && pnpm --filter @app/web build",
     "build:contract": "pnpm --filter @app/contract build",
     "dev:api": "pnpm build:contract && pnpm --filter @app/api start:dev",
     "build:api": "pnpm build:contract && pnpm --filter @app/api build",

@@ -3,18 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "description": "前后端共享的唯一契约来源：响应信封、业务错误码、分页、认证 DTO",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "types": "./dist/cjs/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./src/index.ts",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
+      "types": "./dist/cjs/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/cjs/index.js"
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.cjs.json && tsc -p tsconfig.build.esm.json && node scripts/emit-module-type.mjs",
     "test": "jest --runInBand",
     "typecheck": "tsc -p tsconfig.test.json --noEmit"
   },

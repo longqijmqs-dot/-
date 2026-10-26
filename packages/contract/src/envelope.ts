@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ERROR_MESSAGES, ErrorCode, messageFor } from './error-codes';
+import { ERROR_MESSAGES, ErrorCode, messageFor } from './error-codes.js';
 
 /**
  * 统一响应信封 —— 所有 JSON 接口的响应都长这个样子。
