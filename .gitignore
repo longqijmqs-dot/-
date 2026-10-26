@@ -9,3 +9,5 @@ storage/
 .pnpm-cache/
 *.log
 .DS_Store
+packages/contract/src/**/*.js
+packages/contract/src/**/*.js.map
