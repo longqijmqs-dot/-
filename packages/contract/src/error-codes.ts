@@ -32,6 +32,7 @@ export const ErrorCode = {
 
   NOT_FOUND: 40401,
   EMAIL_CONFLICT: 40901,
+  MESSAGE_IN_PROGRESS: 40902,
 
   RATE_LIMITED: 42901,
 
@@ -57,6 +58,7 @@ export const ERROR_MESSAGES: Readonly<Record<number, string>> = Object.freeze({
   [ErrorCode.ROLE_FORBIDDEN]: '当前角色无权执行此操作',
   [ErrorCode.NOT_FOUND]: '资源不存在或已被删除',
   [ErrorCode.EMAIL_CONFLICT]: '该邮箱已被注册',
+  [ErrorCode.MESSAGE_IN_PROGRESS]: '上一条消息还在生成中，请稍候',
   [ErrorCode.RATE_LIMITED]: '请求过于频繁，请稍后再试',
   [ErrorCode.INTERNAL_ERROR]: '服务开小差了，请稍后重试',
   [ErrorCode.UPSTREAM_ERROR]: 'AI 服务暂时不可用，请稍后重试',

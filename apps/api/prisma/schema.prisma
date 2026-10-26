@@ -42,6 +42,56 @@ model User {
 
   role Role @relation(fields: [roleId], references: [id])
 
+  conversations Conversation[]
+
   @@index([roleId])
   @@map("users")
+}
+
+/// 会话。
+/// 归档（isArchived）与删除（deletedAt）是两个独立状态：
+/// 归档 = 收起来但还能恢复；删除 = 逻辑删除，之后查不到。
+model Conversation {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  userId     BigInt    @map("user_id") @db.UnsignedBigInt
+  title      String    @db.VarChar(128)
+  isArchived Boolean   @default(false) @map("is_archived")
+  deletedAt  DateTime? @map("deleted_at") @db.DateTime(3)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.DateTime(3)
+
+  user     User      @relation(fields: [userId], references: [id])
+  messages Message[]
+
+  /// 列表查询：按用户过滤 + 按创建时间倒序
+  @@index([userId, createdAt])
+  @@map("conversations")
+}
+
+/// 消息。
+///
+/// status 的取值：streaming / complete / interrupted / failed
+///   —— 「中断后已生成内容落库」靠它表达（PRD 4.3 验收标准 3）
+///
+/// clientMessageId 是幂等键：唯一索引 (conversation_id, client_message_id)，
+///   网络重试不会产生两条用户消息。assistant 消息该字段为空，
+///   MySQL 的唯一索引允许多个 NULL，正好满足。
+model Message {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  conversationId  BigInt    @map("conversation_id") @db.UnsignedBigInt
+  role            String    @db.VarChar(16)
+  content         String    @db.Text
+  status          String    @default("complete") @db.VarChar(16)
+  model           String?   @db.VarChar(64)
+  tokenCount      Int?      @map("token_count")
+  clientMessageId String?   @map("client_message_id") @db.VarChar(64)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  finishedAt      DateTime? @map("finished_at") @db.DateTime(3)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+
+  @@unique([conversationId, clientMessageId])
+  /// 游标分页靠它：WHERE conversation_id = ? AND id < ? ORDER BY id DESC
+  @@index([conversationId, id])
+  @@map("messages")
 }

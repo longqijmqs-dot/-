@@ -12,9 +12,6 @@ export * from './error-codes.js';
 export * from './envelope.js';
 export * from './pagination.js';
 export * from './auth.js';
-
-/**
- * SSE 事件命名空间（占位）。
- * 本变更不实现，等 chat-stream 变更时在这里补 DeltaEvent / DoneEvent / ErrorEvent
- * 的 zod schema，前端解析器与后端序列化器共用。
- */
+export * from './chat.js';
+export * from './events.js';
+export * from './fixtures/sse-golden.js';
