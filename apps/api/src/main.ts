@@ -45,6 +45,11 @@ async function bootstrap(): Promise<void> {
 }
 
 bootstrap().catch((error: unknown) => {
+  // 注意顺序：pino 是异步缓冲写，若先 process.exit 会把日志丢掉。
+  // 用同步的 console.error 兜底，保证启动失败时一定能看到原因。
+  console.error('[bootstrap] API 启动失败：', error);
   logger.fatal({ err: error }, 'API 启动失败');
-  process.exit(1);
+  process.exitCode = 1;
+  // 给 pino 一点时间把 fatal 写出去
+  setTimeout(() => process.exit(1), 100);
 });

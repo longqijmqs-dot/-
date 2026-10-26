@@ -49,6 +49,9 @@ export type CursorQuery = z.infer<typeof CursorQuerySchema>;
 export interface CursorResult<T> {
   /** 时间升序排列，前端直接渲染，无需再 reverse */
   items: T[];
-  /** 下一页的游标；为 null 表示已经到最早一条 */
-  nextCursor: number | null;
+  /**
+   * 下一页的游标；为 null 表示已经到最早一条。
+   * 用 string 而不是 number：消息 id 是 BIGINT，超过 2^53 会丢精度。
+   */
+  nextCursor: string | null;
 }

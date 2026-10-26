@@ -22,7 +22,17 @@ import { getRequestId } from './request-context';
 export class TransformInterceptor<T> implements NestInterceptor<T, Envelope<T>> {
   constructor(private readonly cls: ClsService) {}
 
-  intercept(_context: ExecutionContext, next: CallHandler<T>): Observable<Envelope<T>> {
-    return next.handle().pipe(map((data) => ok(data, getRequestId(this.cls))));
+  intercept(context: ExecutionContext, next: CallHandler<T>): Observable<Envelope<T>> {
+    const response = context.switchToHttp().getResponse<{ headersSent?: boolean }>();
+
+    return next.handle().pipe(
+      map((data) => {
+        // 文件流、SSE 这类响应已经自己写过头部和内容，不能再包一层 JSON
+        if (response.headersSent) {
+          return data as unknown as Envelope<T>;
+        }
+        return ok(data, getRequestId(this.cls));
+      }),
+    );
   }
 }

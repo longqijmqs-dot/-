@@ -22,6 +22,15 @@ const EnvSchema = z.object({
   BCRYPT_ROUNDS: z.coerce.number().int().min(4).max(15).default(12),
 
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
+
+  // ---------- AI 提供者 ----------
+  AI_PROVIDER: z.enum(['mock', 'deepseek']).default('mock'),
+  DEEPSEEK_API_KEY: z.string().optional(),
+  DEEPSEEK_BASE_URL: z.string().default('https://api.deepseek.com'),
+  DEEPSEEK_MODEL: z.string().default('deepseek-chat'),
+  AI_TIMEOUT_MS: z.coerce.number().int().positive().default(60_000),
+  /** 送给模型的上下文条数（最近 N 条），控制成本 */
+  AI_CONTEXT_MESSAGES: z.coerce.number().int().min(1).max(100).default(20),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

@@ -11,6 +11,9 @@ import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
+import { AiModule } from './ai/ai.module';
+import { ConversationsModule } from './conversations/conversations.module';
+import { MessagesModule } from './messages/messages.module';
 
 @Module({
   imports: [
@@ -51,6 +54,9 @@ import { AuthModule } from './auth/auth.module';
     RedisModule,
     HealthModule,
     AuthModule,
+    AiModule,
+    ConversationsModule,
+    MessagesModule,
   ],
   providers: [
     // 限流放在最前面：让明显超限的请求尽早被拒，不浪费鉴权和数据库开销
