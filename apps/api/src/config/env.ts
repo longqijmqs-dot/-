@@ -23,6 +23,16 @@ const EnvSchema = z.object({
 
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
 
+  // ---------- 文件上传 ----------
+  /**
+   * 上传文件存储目录。不填则用代码位置推导出的仓库根 uploads/（见 uploads.service.ts）。
+   * 这里刻意不给 './uploads' 这种默认值：相对路径依赖进程 cwd，
+   * 从不同目录启动会落到不同位置，文件会「凭空消失」。
+   */
+  UPLOADS_DIR: z.string().optional(),
+  /** 单个文件最大大小（字节），默认 10MB */
+  UPLOAD_MAX_SIZE: z.coerce.number().int().positive().default(10 * 1024 * 1024),
+
   // ---------- AI 提供者 ----------
   AI_PROVIDER: z.enum(['mock', 'deepseek']).default('mock'),
   DEEPSEEK_API_KEY: z.string().optional(),

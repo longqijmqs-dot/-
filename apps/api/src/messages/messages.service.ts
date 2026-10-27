@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Message as MessageRow } from '@prisma/client';
 import {
+  type Attachment,
   type CursorResult,
   ErrorCode,
   messageFor,
@@ -22,6 +23,7 @@ import { logger } from '../common/logger';
 import { openSse } from '../common/sse';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConversationsService } from '../conversations/conversations.service';
+import { UploadsService } from '../uploads/uploads.service';
 
 @Injectable()
 export class MessagesService {
@@ -30,6 +32,7 @@ export class MessagesService {
     private readonly conversations: ConversationsService,
     private readonly config: ConfigService,
     @Inject(AI_PROVIDER) private readonly ai: AiProvider,
+    private readonly uploads: UploadsService,
   ) {}
 
   /**
@@ -104,6 +107,10 @@ export class MessagesService {
         content: input.content,
         status: 'complete',
         clientMessageId: input.clientMessageId,
+        // 附件引用：前端上传后拿到的 Attachment 数组。
+        // Prisma 的 Json 字段直接收 JSON 值（数组/对象），不要 JSON.stringify，
+        // 否则会被双重编码成「字符串里套 JSON」
+        attachments: input.attachments ?? [],
         finishedAt: new Date(),
       },
     });
@@ -240,10 +247,50 @@ export class MessagesService {
       orderBy: { id: 'desc' },
       take: limit,
     });
-    return rows
-      .reverse()
-      .filter((row) => row.role === 'user' || row.role === 'assistant')
-      .map((row) => ({ role: row.role as 'user' | 'assistant', content: row.content }));
+
+    const turns: ChatTurn[] = [];
+    for (const row of rows.reverse()) {
+      if (row.role !== 'user' && row.role !== 'assistant') {
+        continue;
+      }
+      let content = row.content;
+      // 用户消息带附件时，把附件文本拼进这一轮上下文，
+      // 否则模型只能看到「我上传了文件」这句话，看不到文件里写了什么
+      if (row.role === 'user') {
+        const attachments = parseAttachments(row);
+        if (attachments.length > 0) {
+          content = await this.withAttachmentContent(content, attachments);
+        }
+      }
+      turns.push({ role: row.role as 'user' | 'assistant', content });
+    }
+    return turns;
+  }
+
+  /**
+   * 把附件内容拼到用户消息文本后面。
+   *
+   * 为什么不把附件单独做成一条 system/独立 turn？
+   *   因为附件是「这条用户消息的一部分」，语义上属于同一次发言。
+   *   拼在一起模型才知道「他在问这个文件里的 X」指的是哪段内容。
+   *
+   * 抽不到内容的附件（图片/Office/压缩包）也要显式告知，
+   * 否则模型会像之前那样回答「我没收到任何附件」——它确实没收到，
+   * 但用户看到这种回答会以为功能坏了。说清「收到文件但读不了内容」更诚实。
+   */
+  private async withAttachmentContent(content: string, attachments: Attachment[]): Promise<string> {
+    const parts: string[] = [];
+    for (const att of attachments) {
+      const text = await this.uploads.extractText(att);
+      if (text) {
+        parts.push(`【附件「${att.name}」的内容】\n${text}`);
+      } else {
+        parts.push(
+          `【附件「${att.name}」】（${att.mimeType} 格式，当前版本暂不支持读取内容，仅知道文件名和大小 ${att.size} 字节）`,
+        );
+      }
+    }
+    return `${content}\n\n${parts.join('\n\n')}`;
   }
 }
 
@@ -265,6 +312,29 @@ function serialise(error: unknown): Record<string, unknown> {
   return { value: String(error) };
 }
 
+/**
+ * 解析消息行里的附件 JSON。
+ *
+ * Prisma 的 Json 字段读出来可能是「已解析的数组」或「JSON 字符串」
+ * （取决于驱动和写入方式），两种都要兼容；解析失败一律降级为空数组，
+ * 绝不能因为一条脏数据让整页历史消息 500。
+ */
+function parseAttachments(row: { attachments?: unknown }): Attachment[] {
+  const raw = row.attachments;
+  if (Array.isArray(raw)) {
+    return raw as Attachment[];
+  }
+  if (typeof raw === 'string' && raw.length > 0) {
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      return Array.isArray(parsed) ? (parsed as Attachment[]) : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 export function toMessage(row: MessageRow): Message {
   return {
     id: String(row.id),
@@ -275,6 +345,7 @@ export function toMessage(row: MessageRow): Message {
     model: row.model,
     tokenCount: row.tokenCount,
     clientMessageId: row.clientMessageId,
+    attachments: parseAttachments(row),
     createdAt: row.createdAt.toISOString(),
     finishedAt: row.finishedAt?.toISOString() ?? null,
   };

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import type { Attachment } from '@app/contract';
 import ChatComposer from '../components/ChatComposer.vue';
 import ConversationSidebar from '../components/ConversationSidebar.vue';
 import MessageBubble from '../components/MessageBubble.vue';
@@ -56,9 +57,9 @@ watch(
   },
 );
 
-async function handleSend(text: string): Promise<void> {
+async function handleSend(text: string, attachments: Attachment[]): Promise<void> {
   stickToBottom = true;
-  await chat.sendMessage(text);
+  await chat.sendMessage(text, attachments);
 }
 
 async function handleLogout(): Promise<void> {

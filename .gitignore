@@ -11,3 +11,4 @@ storage/
 .DS_Store
 packages/contract/src/**/*.js
 packages/contract/src/**/*.js.map
+uploads/

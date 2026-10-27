@@ -20,6 +20,26 @@ export type MessageRole = z.infer<typeof MessageRoleSchema>;
 export const MessageStatusSchema = z.enum(['streaming', 'complete', 'interrupted', 'failed']);
 export type MessageStatus = z.infer<typeof MessageStatusSchema>;
 
+/**
+ * 文件附件。
+ *
+ * 上传流程：
+ *   1. 前端调 POST /api/uploads → 后端存磁盘 → 返回 { id, url, name, ... }
+ *   2. 前端发消息时带上 attachments: [{ id, url, name, ... }]
+ *   3. 后端把附件引用存到消息里（不存文件本身，文件在磁盘上）
+ *
+ * url 是相对路径（/uploads/attachments/xxx.png），前端拼上域名就能访问。
+ */
+export const AttachmentSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  size: z.number().int().positive(),
+  mimeType: z.string(),
+  url: z.string(),
+});
+
+export type Attachment = z.infer<typeof AttachmentSchema>;
+
 export const MessageSchema = z.object({
   id: z.string(),
   conversationId: z.string(),
@@ -29,6 +49,8 @@ export const MessageSchema = z.object({
   model: z.string().nullable(),
   tokenCount: z.number().int().nullable(),
   clientMessageId: z.string().nullable(),
+  /** 附件列表：用户上传的文件引用，按上传顺序排列 */
+  attachments: z.array(AttachmentSchema).default([]),
   createdAt: z.string(),
   finishedAt: z.string().nullable(),
 });
@@ -97,6 +119,11 @@ export const SendMessageSchema = z.object({
    * 后端靠它去重，避免「网络抖动重试 → 两条一样的消息」。
    */
   clientMessageId: z.string().uuid('clientMessageId 必须是 UUID'),
+  /**
+   * 附件列表：用户上传的文件引用。
+   * 每个附件先通过 POST /api/uploads 上传，拿到 Attachment 对象后放进这里。
+   */
+  attachments: z.array(AttachmentSchema).max(5, '最多 5 个附件').optional(),
 });
 
 export type SendMessageInput = z.infer<typeof SendMessageSchema>;

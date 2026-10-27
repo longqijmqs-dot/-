@@ -14,6 +14,7 @@ import { AuthModule } from './auth/auth.module';
 import { AiModule } from './ai/ai.module';
 import { ConversationsModule } from './conversations/conversations.module';
 import { MessagesModule } from './messages/messages.module';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { MessagesModule } from './messages/messages.module';
     AiModule,
     ConversationsModule,
     MessagesModule,
+    UploadsModule,
   ],
   providers: [
     // 限流放在最前面：让明显超限的请求尽早被拒，不浪费鉴权和数据库开销

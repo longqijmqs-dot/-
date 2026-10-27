@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import type { Conversation, Message } from '@app/contract';
+import type { Attachment, Conversation, Message } from '@app/contract';
 import { conversationsApi, messagesApi, sendMessageStream } from '../api/chat';
 import { ApiError } from '../api/http';
 
@@ -144,7 +144,7 @@ export const useChatStore = defineStore('chat', () => {
 
   // ---------------------------------------------------------------- 发消息
 
-  async function sendMessage(content: string): Promise<void> {
+  async function sendMessage(content: string, attachments: Attachment[] = []): Promise<void> {
     const conversationId = currentId.value;
     const text = content.trim();
     if (!conversationId || !text || isStreaming.value) {
@@ -165,6 +165,7 @@ export const useChatStore = defineStore('chat', () => {
       model: null,
       tokenCount: null,
       clientMessageId,
+      attachments,
       createdAt: now,
       finishedAt: now,
     };
@@ -177,6 +178,7 @@ export const useChatStore = defineStore('chat', () => {
       model: null,
       tokenCount: null,
       clientMessageId: null,
+      attachments: [],
       createdAt: now,
       finishedAt: null,
     };
@@ -209,7 +211,7 @@ export const useChatStore = defineStore('chat', () => {
     try {
       await sendMessageStream(
         conversationId,
-        { content: text, clientMessageId },
+        { content: text, clientMessageId, attachments },
         {
           onMeta: (meta) => {
             assistantId = meta.messageId;
