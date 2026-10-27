@@ -43,6 +43,7 @@ model User {
   role Role @relation(fields: [roleId], references: [id])
 
   conversations Conversation[]
+  files File[]
 
   @@index([roleId])
   @@map("users")
@@ -62,6 +63,7 @@ model Conversation {
 
   user     User      @relation(fields: [userId], references: [id])
   messages Message[]
+  files    File[]
 
   /// 列表查询：按用户过滤 + 按创建时间倒序
   @@index([userId, createdAt])
@@ -99,4 +101,34 @@ model Message {
   /// 游标分页靠它：WHERE conversation_id = ? AND id < ? ORDER BY id DESC
   @@index([conversationId, id])
   @@map("messages")
+}
+
+/// 文件元数据（PRD 6.6）。
+///
+/// 文件本身存磁盘（uploads/attachments/），数据库只存元数据。
+/// stored_name 是 UUID + 扩展名，防止冲突和路径遍历；
+/// original_name 只用于展示。
+///
+/// 与消息附件的区别：附件是消息的一部分（JSON），File 是独立文件管理。
+/// 上传时先写 File 表，再把附件引用放进消息。
+model File {
+  id             BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  userId         BigInt   @map("user_id") @db.UnsignedBigInt
+  /// 可空：文件可以独立上传，不关联会话
+  conversationId BigInt?  @map("conversation_id") @db.UnsignedBigInt
+  originalName   String   @map("original_name") @db.VarChar(255)
+  storedName     String   @map("stored_name") @db.VarChar(255)
+  url            String   @db.VarChar(512)
+  sizeBytes      BigInt   @map("size_bytes")
+  mimeType       String   @map("mime_type") @db.VarChar(128)
+  createdAt      DateTime @default(now()) @map("created_at") @db.DateTime(3)
+
+  user         User         @relation(fields: [userId], references: [id])
+  conversation Conversation? @relation(fields: [conversationId], references: [id])
+
+  /// 列表查询：按用户过滤 + 按创建时间倒序
+  @@index([userId, createdAt])
+  /// 按会话过滤
+  @@index([conversationId])
+  @@map("files")
 }

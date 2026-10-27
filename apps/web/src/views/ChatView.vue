@@ -88,6 +88,9 @@ function formatTime(iso: string): string {
       <div class="right">
         <span class="user">{{ auth.user?.nickname || auth.user?.email }}</span>
         <span class="role">{{ auth.user?.role }}</span>
+        <button v-if="auth.isAdmin" class="ghost admin-link" type="button" @click="router.push('/admin')">
+          管理后台
+        </button>
         <button class="ghost" type="button" @click="handleLogout">退出</button>
       </div>
     </header>

@@ -13,5 +13,7 @@ export * from './envelope.js';
 export * from './pagination.js';
 export * from './auth.js';
 export * from './chat.js';
+export * from './files.js';
+export * from './admin.js';
 export * from './events.js';
 export * from './fixtures/sse-golden.js';

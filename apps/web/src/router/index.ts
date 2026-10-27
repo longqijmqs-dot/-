@@ -33,6 +33,12 @@ export const router = createRouter({
       meta: { requiresAuth: true, title: '对话' },
     },
     {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('../views/AdminView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: '后台管理' },
+    },
+    {
       path: '/forbidden',
       name: 'forbidden',
       component: () => import('../views/ForbiddenView.vue'),
