@@ -110,10 +110,8 @@ export class FilesController {
       attachment,
     );
 
-    return {
-      ...attachment,
-      id: fileId, // 用 File 表 ID 替换附件 UUID
-    };
+    // 返回完整 File DTO（含 originalName/sizeBytes 等），而不是附件信息
+    return this.filesService.getFileById(fileId);
   }
 
   /**

@@ -59,6 +59,24 @@ export class FilesService {
   }
 
   /**
+   * 按 ID 获取单个文件的完整 DTO。
+   *
+   * 上传接口写库后调用它返回完整 File 记录，
+   * 而不是只返回附件信息（缺 userId / originalName / sizeBytes 等字段）。
+   */
+  async getFileById(fileId: string) {
+    const record = await this.prisma.file.findUnique({
+      where: { id: BigInt(fileId) },
+    });
+
+    if (!record) {
+      throw new NotFoundException('文件不存在');
+    }
+
+    return this.toFileDto(record);
+  }
+
+  /**
    * 文件列表（分页 + 会话过滤）。
    *
    * @param userId 当前用户 ID（用于归属校验）
