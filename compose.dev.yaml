@@ -1,0 +1,60 @@
+name: ai-chat-platform-dev
+
+# 本地开发编排：只跑 MySQL + Redis，应用在 Windows 上用 pnpm 跑
+# 用法：docker compose -f compose.dev.yaml up -d
+#
+# 应用本身不在容器里跑的原因：
+#   热重载（nest start --watch / vite）体验好，改代码即时生效
+#   容器里跑需要 rebuild 镜像，每次改代码都要等构建完成
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: aichat_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+08:00
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-u', 'root', '-p${MYSQL_ROOT_PASSWORD}']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    ports:
+      - '${MYSQL_PORT:-3306}:3306'
+
+  redis:
+    image: redis:7-alpine
+    container_name: aichat_redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - 'yes'
+      - --requirepass
+      - ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+
+volumes:
+  mysql_data:
+  redis_data:

@@ -1,0 +1,38 @@
+# 依赖目录（Docker 里会重新 install）
+node_modules
+**/node_modules
+
+# 构建产物（Docker 里会重新 build）
+dist
+**/dist
+
+# 上传文件（生产环境用 volume，不打进镜像）
+uploads
+
+# pnpm 本机 store / cache（项目里就地存放，体积大且容器里用不到）
+.pnpm-store
+.pnpm-cache
+
+# 环境与密钥
+# ⚠️ 必须写成递归形式：只写 .env 只匹配根目录，apps/api/.env 里的真实密钥
+#    （数据库口令、JWT 密钥、DeepSeek API Key）会被打进镜像层。
+.env
+.env.local
+.env.*
+**/.env
+**/.env.local
+**/.env.*
+
+# Git
+.git
+.gitignore
+
+# 临时文件
+.tmp
+**/.tmp
+*.log
+**/*.log
+
+# IDE
+.vscode
+.idea

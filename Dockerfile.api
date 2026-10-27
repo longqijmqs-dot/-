@@ -1,0 +1,90 @@
+# ============================================================
+# 后端 API Dockerfile（多阶段构建）
+#
+# 阶段 1：安装所有依赖 + 构建 contract + 生成 Prisma 客户端 + 构建 API
+# 阶段 2：只保留生产依赖 + 构建产物，镜像更小更安全
+#
+# 为什么用多阶段？
+#   - 阶段 1 需要 devDependencies（typescript、prisma CLI 等）来构建
+#   - 阶段 2 不需要这些，如果打进最终镜像就是给攻击者送工具
+# ============================================================
+
+# ---------- 阶段 1：构建 ----------
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+# 先复制项目元数据（利用 Docker layer 缓存：
+# 只要 package.json / lockfile 没变，这层就不重新执行）
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/ ./packages/
+COPY apps/ ./apps/
+
+# 基础镜像里默认没有 pnpm。
+# 优先用 corepack（与 package.json 的 packageManager 字段一致）；
+# 若 corepack 因签名校验/网络问题失败，回退到 npm 直接安装，保证构建可用。
+# COREPACK_ENABLE_DOWNLOAD_PROMPT=0：非交互构建下禁止 corepack 弹出
+# “是否下载 pnpm”的交互提示，否则 CI/Docker 构建会卡住。
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+RUN corepack enable && corepack prepare pnpm@11.28.5 --activate \
+    || npm install -g pnpm@11.28.5
+
+# 安装所有依赖（含 devDependencies）。
+# ⚠️ store-dir 必须覆盖：pnpm-workspace.yaml 里把 store 写死成了本机 Windows 路径
+#    （C:/Users/.../​.pnpm-store），在 Linux 容器里会落进无效路径，必须显式覆盖。
+RUN pnpm install --frozen-lockfile --store-dir=/root/.local/share/pnpm/store
+
+# 构建顺序：contract → prisma client → api
+# contract 是 api 的依赖（api 通过 node_modules/@app/contract 软链解析它的 dist），必须先构建。
+RUN pnpm --filter @app/contract build
+
+# 生成 Prisma 客户端（需要 schema.prisma 和 prisma CLI）。
+#
+# ⚠️ 必须放在 tsc 之前：
+#    api 的类型来自 @prisma/client，而 @prisma/client 只是 re-export
+#    `.prisma/client/default`。没有生成产物时，tsc 解析不出 PrismaClient 的类型，
+#    `pnpm --filter @app/api build` 会直接报 "Cannot find module '.prisma/client'" 之类错误。
+#
+# ⚠️ 需要 DATABASE_URL 存在：prisma generate 会读取 schema 的 datasource url，
+#    缺了就报 "Environment variable not found: DATABASE_URL"。它只用来解析 schema，
+#    不会真的连库，所以这里放一个占位串即可（运行时由 compose 注入真实连接串）。
+ENV DATABASE_URL=mysql://root:placeholder@localhost:3306/ai_chat
+RUN pnpm --filter @app/api prisma:generate
+
+# 依赖上一步生成的 .prisma/client 类型，所以必须放在 prisma:generate 之后
+RUN pnpm --filter @app/api build
+
+# ---------- 阶段 2：运行 ----------
+FROM node:22-alpine AS runner
+
+WORKDIR /app
+
+# 复制项目元数据
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/ ./packages/
+COPY apps/api/ ./apps/api/
+
+# 只装生产依赖。store-dir 同样要覆盖（原因见上）。
+# @prisma/client 的 postinstall 被 workspace 配置忽略，
+# .prisma/client 由下一步从 builder 阶段复制进来。
+RUN pnpm install --frozen-lockfile --prod --store-dir=/root/.local/share/pnpm/store
+
+# 复制构建产物（从 builder 阶段）
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+
+# 复制 Prisma 客户端（生成在 node_modules/.prisma/client）
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# 复制 contract 构建产物（API 运行时需要）
+COPY --from=builder /app/packages/contract/dist ./packages/contract/dist
+
+# 创建上传目录（生产环境用 volume 挂载，这里先建好）
+RUN mkdir -p /app/uploads/attachments
+
+EXPOSE 3000
+
+# 健康检查：每 30 秒检查一次 /api/health
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:3000/api/health || exit 1
+
+CMD ["node", "apps/api/dist/main.js"]

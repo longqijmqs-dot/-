@@ -1,41 +1,42 @@
 name: ai-chat-platform
 
-# 只把「依赖服务」放进容器：MySQL（仓库）与 Redis（便签本）。
-# 应用本身仍在 Windows 侧用 pnpm 跑，热重载体验好。
-# WSL2 默认会把容器端口映射到 Windows 的 localhost，因此 Windows 上的
-# NestJS 直接连 localhost:3306 / localhost:6379 即可。
+# 全栈编排：MySQL + Redis + API + Web(Nginx)
+# 用法：docker compose up -d
+#
+# 本地开发（应用在 Windows 上跑，只用容器里的 MySQL/Redis）请用：
+#   docker compose -f compose.dev.yaml up -d
 
 services:
   mysql:
-    image: mysql:8.4
-    container_name: aichat-mysql
+    image: mysql:8.0
+    container_name: aichat_mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
       TZ: Asia/Shanghai
     command:
-      # 统一字符集与时区，避免中文乱码、时间差 8 小时这两类经典事故
       - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_0900_ai_ci
+      - --collation-server=utf8mb4_unicode_ci
       - --default-time-zone=+08:00
-    ports:
-      - '${MYSQL_PORT:-3306}:3306'
     volumes:
-      - mysql-data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     healthcheck:
-      # 注意：必须用 127.0.0.1 而不是 localhost，否则容器内会走 socket 导致误判
       test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-u', 'root', '-p${MYSQL_ROOT_PASSWORD}']
       interval: 5s
       timeout: 5s
-      retries: 24
+      retries: 20
       start_period: 30s
+    ports:
+      - '${MYSQL_PORT:-3306}:3306'
 
   redis:
     image: redis:7-alpine
-    container_name: aichat-redis
+    container_name: aichat_redis
     restart: unless-stopped
     command:
       - redis-server
@@ -43,16 +44,63 @@ services:
       - 'yes'
       - --requirepass
       - ${REDIS_PASSWORD}
-    ports:
-      - '${REDIS_PORT:-6379}:6379'
     volumes:
-      - redis-data:/data
+      - redis_data:/data
     healthcheck:
       test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
       interval: 5s
       timeout: 3s
-      retries: 24
+      retries: 10
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: aichat_api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      NODE_ENV: production
+      PORT: 3000
+      CORS_ORIGIN: '*'
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL}
+      BCRYPT_ROUNDS: ${BCRYPT_ROUNDS}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      AI_PROVIDER: ${AI_PROVIDER}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL}
+      AI_TIMEOUT_MS: ${AI_TIMEOUT_MS}
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: aichat_web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - '8080:80'
 
 volumes:
-  mysql-data:
-  redis-data:
+  mysql_data:
+  redis_data:
+  uploads_data:

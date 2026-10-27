@@ -78,6 +78,9 @@ importers:
       '@nestjs/cli':
         specifier: ^11.0.10
         version: 11.0.24(@types/node@22.20.5)(esbuild@0.28.2)(postcss@8.5.31)(uglify-js@3.19.3)
+      '@nestjs/testing':
+        specifier: ^11.1.6
+        version: 11.2.8(@nestjs/common@11.2.8(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@10.2.2))(@nestjs/core@11.2.8)(@nestjs/platform-express@11.2.8)
       '@types/cookie-parser':
         specifier: ^1.4.9
         version: 1.4.10(@types/express@5.0.6)
@@ -890,6 +893,19 @@ packages:
       class-transformer:
         optional: true
       class-validator:
+        optional: true
+
+  '@nestjs/testing@11.2.8':
+    resolution: {integrity: sha512-ng3NlbDHehZ6I14R41Q5KFTEfRSkBSKEjnUTwMVCD1oc6KWnzmwW3Ct8BcS15WlGlxC6gmKCibJle9eclvaOaA==}
+    peerDependencies:
+      '@nestjs/common': ^11.0.0
+      '@nestjs/core': ^11.0.0
+      '@nestjs/microservices': ^11.0.0
+      '@nestjs/platform-express': ^11.0.0
+    peerDependenciesMeta:
+      '@nestjs/microservices':
+        optional: true
+      '@nestjs/platform-express':
         optional: true
 
   '@nestjs/throttler@6.7.1':
@@ -4423,6 +4439,14 @@ snapshots:
       path-to-regexp: 8.4.2
       reflect-metadata: 0.2.2
       swagger-ui-dist: 5.32.13
+
+  '@nestjs/testing@11.2.8(@nestjs/common@11.2.8(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@10.2.2))(@nestjs/core@11.2.8)(@nestjs/platform-express@11.2.8)':
+    dependencies:
+      '@nestjs/common': 11.2.8(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@10.2.2)
+      '@nestjs/core': 11.2.8(@nestjs/common@11.2.8(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@10.2.2))(@nestjs/platform-express@11.2.8)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      tslib: 2.8.1
+    optionalDependencies:
+      '@nestjs/platform-express': 11.2.8(@nestjs/common@11.2.8(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@10.2.2))(@nestjs/core@11.2.8)(supports-color@10.2.2)
 
   '@nestjs/throttler@6.7.1(@nestjs/common@11.2.8(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@10.2.2))(@nestjs/core@11.2.8)(reflect-metadata@0.2.2)':
     dependencies:
