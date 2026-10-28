@@ -31,8 +31,6 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
-    ports:
-      - '${MYSQL_PORT:-3306}:3306'
 
   redis:
     image: redis:7-alpine
@@ -51,8 +49,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-    ports:
-      - '${REDIS_PORT:-6379}:6379'
 
   api:
     build:
