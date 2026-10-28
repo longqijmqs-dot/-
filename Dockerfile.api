@@ -16,7 +16,7 @@ WORKDIR /app
 
 # 先复制项目元数据（利用 Docker layer 缓存：
 # 只要 package.json / lockfile 没变，这层就不重新执行）
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY packages/ ./packages/
 COPY apps/ ./apps/
 
@@ -64,10 +64,17 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/ ./packages/
 COPY apps/api/ ./apps/api/
 
-# 只装生产依赖。store-dir 同样要覆盖（原因见上）。
-# @prisma/client 的 postinstall 被 workspace 配置忽略，
-# .prisma/client 由下一步从 builder 阶段复制进来。
-RUN pnpm install --frozen-lockfile --prod --store-dir=/root/.local/share/pnpm/store
+# runner 阶段也需要 pnpm（runner 是全新的 node:22-alpine，没有 builder 里装的 pnpm）
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+RUN corepack enable && corepack prepare pnpm@11.28.5 --activate \
+    || npm install -g pnpm@11.28.5
+
+# 从 builder 复制 node_modules（含所有依赖），再 prune 掉 devDependencies。
+# 为什么不用 RUN pnpm install --prod？
+#   因为 runner 阶段重新下载所有包会很慢，而且 WSL 环境网络不稳定。
+#   从 builder 复制 node_modules 是零网络开销的，然后 prune 掉不需要的。
+COPY --from=builder /app/node_modules ./node_modules
+RUN pnpm prune --prod --store-dir=/root/.local/share/pnpm/store 2>/dev/null || true
 
 # 复制构建产物（从 builder 阶段）
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
