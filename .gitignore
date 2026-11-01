@@ -1,14 +1,37 @@
-﻿node_modules/
+# 依赖和构建产物
+node_modules/
 dist/
+build/
 coverage/
-.env
-.env.local
-storage/
-.tmp/
 .pnpm-store/
 .pnpm-cache/
-*.log
+.tmp/
+uploads/
+
+# 敏感文件（密钥、密码）
+*.pem
+*.key
+.env
+.env.local
+.env.*.local
+
+# 系统 / IDE / 日志
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+*.swp
+*.swo
+.impeccable/
+
+# 临时压缩包
+*.tar.gz
+*.zip
+
+# Prisma 生成物
 packages/contract/src/**/*.js
 packages/contract/src/**/*.js.map
-uploads/
+
+# 本地存储
+storage/
