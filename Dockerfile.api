@@ -38,20 +38,11 @@ RUN pnpm install --frozen-lockfile --store-dir=/root/.local/share/pnpm/store
 # contract 是 api 的依赖（api 通过 node_modules/@app/contract 软链解析它的 dist），必须先构建。
 RUN pnpm --filter @app/contract build
 
-# 生成 Prisma 客户端（需要 schema.prisma 和 prisma CLI）。
-#
-# ⚠️ 必须放在 tsc 之前：
-#    api 的类型来自 @prisma/client，而 @prisma/client 只是 re-export
-#    `.prisma/client/default`。没有生成产物时，tsc 解析不出 PrismaClient 的类型，
-#    `pnpm --filter @app/api build` 会直接报 "Cannot find module '.prisma/client'" 之类错误。
-#
-# ⚠️ 需要 DATABASE_URL 存在：prisma generate 会读取 schema 的 datasource url，
-#    缺了就报 "Environment variable not found: DATABASE_URL"。它只用来解析 schema，
-#    不会真的连库，所以这里放一个占位串即可（运行时由 compose 注入真实连接串）。
-ENV DATABASE_URL=mysql://root:placeholder@localhost:3306/ai_chat
-RUN pnpm --filter @app/api prisma:generate
+# 从缓存复制 Prisma 客户端（避免网络下载引擎二进制文件）
+COPY .prisma-cache/.prisma ./node_modules/.prisma
+COPY .prisma-cache/@prisma ./node_modules/@prisma
 
-# 依赖上一步生成的 .prisma/client 类型，所以必须放在 prisma:generate 之后
+ENV DATABASE_URL=mysql://root:placeholder@localhost:3306/ai_chat
 RUN pnpm --filter @app/api build
 
 # ---------- 阶段 2：运行 ----------
