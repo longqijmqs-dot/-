@@ -5,7 +5,6 @@ declare module 'vue-router' {
   interface RouteMeta {
     requiresAuth?: boolean;
     guestOnly?: boolean;
-    requiresAdmin?: boolean;
     title?: string;
   }
 }
@@ -33,18 +32,6 @@ export const router = createRouter({
       meta: { requiresAuth: true, title: '对话' },
     },
     {
-      path: '/admin',
-      name: 'admin',
-      component: () => import('../views/AdminView.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true, title: '后台管理' },
-    },
-    {
-      path: '/forbidden',
-      name: 'forbidden',
-      component: () => import('../views/ForbiddenView.vue'),
-      meta: { requiresAuth: true, title: '无权访问' },
-    },
-    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('../views/NotFoundView.vue'),
@@ -64,10 +51,6 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAuth && !auth.isLoggedIn) {
     return { name: 'login', query: { redirect: to.fullPath } };
-  }
-
-  if (to.meta.requiresAdmin && !auth.isAdmin) {
-    return { name: 'forbidden' };
   }
 
   if (to.meta.guestOnly && auth.isLoggedIn) {

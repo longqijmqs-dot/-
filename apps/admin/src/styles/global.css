@@ -1,0 +1,39 @@
+:root {
+  /* 暖灰纸色背景（不是纯白，更像笔记本纸） */
+  --paper: #f6f3ee;
+  --paper-2: #ede8e0;
+  --surface: #ffffff;
+  --ink: #1a1a1a;
+  --ink-soft: #555;
+  --ink-faint: #999;
+  --line: #e0dbd4;
+  --line-strong: #ccc6bc;
+  --amber: #c49a3c;
+  --amber-soft: #e8d5a0;
+  --danger: #b3261e;
+  --danger-bg: rgba(179, 38, 30, 0.06);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #app {
+  height: 100%;
+  font-family: var(--font-sans);
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+}
+
+input, textarea {
+  font-family: inherit;
+}

@@ -8,11 +8,9 @@ import type { AdminUser, AdminRole, AdminStats } from '@app/contract';
 const router = useRouter();
 const auth = useAuthStore();
 
-// 统计
 const stats = ref<AdminStats | null>(null);
 const statsLoading = ref(false);
 
-// 用户列表
 const users = ref<AdminUser[]>([]);
 const usersLoading = ref(false);
 const userTotal = ref(0);
@@ -20,10 +18,8 @@ const userPage = ref(1);
 const userPageSize = ref(10);
 const keyword = ref('');
 
-// 角色列表
 const roles = ref<AdminRole[]>([]);
 
-// 错误提示
 const error = ref<string | null>(null);
 
 const totalPages = computed(() => Math.max(1, Math.ceil(userTotal.value / userPageSize.value)));
@@ -100,23 +96,23 @@ onMounted(async () => {
   <div class="app">
     <header class="topbar">
       <div class="left">
-        <button class="back" type="button" @click="router.push('/chat')">← 对话</button>
-        <span class="wordmark">后台管理</span>
+        <span class="logo">🛡</span>
+        <span class="wordmark">管理后台</span>
       </div>
       <div class="right">
         <span class="user">{{ auth.user?.nickname || auth.user?.email }}</span>
-        <span class="role badge">admin</span>
+        <button type="button" class="logout" @click="auth.logout(); router.push('/admin/login')">
+          退出
+        </button>
       </div>
     </header>
 
     <main class="main">
-      <!-- 错误提示 -->
       <div v-if="error" class="error" role="alert">
         <span>{{ error }}</span>
-        <button type="button" @click="error = null">关闭</button>
+        <button type="button" @click="error = null">✕</button>
       </div>
 
-      <!-- 统计卡片 -->
       <section class="stats">
         <div class="stat-card">
           <span class="stat-label">用户数</span>
@@ -136,7 +132,6 @@ onMounted(async () => {
         </div>
       </section>
 
-      <!-- 用户列表 -->
       <section class="panel">
         <div class="panel-header">
           <h2>用户管理</h2>
@@ -195,7 +190,6 @@ onMounted(async () => {
           </tbody>
         </table>
 
-        <!-- 分页 -->
         <div class="pagination">
           <button type="button" :disabled="userPage <= 1" @click="goPage(userPage - 1)">上一页</button>
           <span>第 {{ userPage }} / {{ totalPages }} 页（共 {{ userTotal }} 人）</span>
@@ -203,7 +197,6 @@ onMounted(async () => {
         </div>
       </section>
 
-      <!-- 角色列表 -->
       <section class="panel">
         <h2>角色列表</h2>
         <table class="role-table">
@@ -231,7 +224,7 @@ onMounted(async () => {
 .app {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100vh;
   background: var(--paper);
 }
 
@@ -239,36 +232,30 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
+  padding: 16px 24px;
   border-bottom: 1px solid var(--line);
-  background: rgba(246, 243, 238, 0.92);
-  backdrop-filter: blur(6px);
+  background: var(--surface);
 }
 
-.left,
-.right {
+.left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+.logo {
+  font-size: 24px;
 }
 
 .wordmark {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 16px;
 }
 
-.back {
-  border: 1px solid var(--line-strong);
-  background: transparent;
-  border-radius: 8px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--ink-soft);
-}
-
-.back:hover {
-  background: rgba(0, 0, 0, 0.04);
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .user {
@@ -276,35 +263,40 @@ onMounted(async () => {
   color: var(--ink-soft);
 }
 
-.badge {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--paper-2);
+.logout {
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
   color: var(--ink-soft);
+}
+
+.logout:hover {
+  background: var(--paper);
 }
 
 .main {
   flex: 1;
-  overflow-y: auto;
-  padding: 24px 40px;
-  max-width: 1000px;
+  padding: 32px 24px;
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
 }
 
 .error {
-  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 10px 14px;
+  margin-bottom: 20px;
   border: 1px solid rgba(179, 38, 30, 0.3);
   border-left: 3px solid var(--danger);
   border-radius: 8px;
   background: var(--danger-bg);
   color: var(--danger);
   font-size: 13px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 
 .error button {
@@ -312,62 +304,55 @@ onMounted(async () => {
   background: none;
   color: var(--danger);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
 }
 
-/* 统计卡片 */
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
 }
 
 .stat-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 20px;
+  gap: 8px;
+  padding: 24px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--ink-faint);
 }
 
 .stat-value {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--ink);
 }
 
-/* 面板 */
 .panel {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
-  padding: 20px;
+  padding: 24px;
 }
 
 .panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 h2 {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  margin: 0 0 16px 0;
-}
-
-.panel-header h2 {
   margin: 0;
 }
 
@@ -378,10 +363,10 @@ h2 {
 
 .search-box input {
   border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  padding: 6px 10px;
+  border-radius: 6px;
+  padding: 8px 12px;
   font-size: 13px;
-  width: 200px;
+  width: 240px;
   background: var(--paper);
 }
 
@@ -394,13 +379,12 @@ h2 {
   border: none;
   background: var(--ink);
   color: #fff;
-  border-radius: 8px;
-  padding: 6px 14px;
+  border-radius: 6px;
+  padding: 8px 16px;
   cursor: pointer;
   font-size: 13px;
 }
 
-/* 表格 */
 .user-table,
 .role-table {
   width: 100%;
@@ -411,7 +395,7 @@ h2 {
 .user-table th,
 .role-table th {
   text-align: left;
-  padding: 8px 12px;
+  padding: 12px;
   border-bottom: 1px solid var(--line);
   color: var(--ink-faint);
   font-weight: 500;
@@ -420,14 +404,14 @@ h2 {
 
 .user-table td,
 .role-table td {
-  padding: 10px 12px;
+  padding: 12px;
   border-bottom: 1px solid var(--line);
 }
 
 .empty {
   text-align: center;
   color: var(--ink-faint);
-  padding: 30px !important;
+  padding: 32px !important;
 }
 
 .mono {
@@ -437,7 +421,7 @@ h2 {
 
 .status {
   font-size: 12px;
-  padding: 2px 8px;
+  padding: 4px 8px;
   border-radius: 4px;
 }
 
@@ -451,18 +435,26 @@ h2 {
   color: var(--danger);
 }
 
+.badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--paper-2);
+  color: var(--ink-soft);
+}
+
 .action {
   border: 1px solid var(--line-strong);
   background: transparent;
   border-radius: 6px;
-  padding: 4px 12px;
+  padding: 6px 12px;
   cursor: pointer;
   font-size: 12px;
   color: var(--ink-soft);
 }
 
 .action:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--paper);
 }
 
 .action.danger {
@@ -474,13 +466,12 @@ h2 {
   background: rgba(179, 38, 30, 0.06);
 }
 
-/* 分页 */
 .pagination {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 20px;
   font-size: 13px;
   color: var(--ink-soft);
 }
@@ -489,7 +480,7 @@ h2 {
   border: 1px solid var(--line-strong);
   background: transparent;
   border-radius: 6px;
-  padding: 4px 12px;
+  padding: 6px 12px;
   cursor: pointer;
   font-size: 12px;
   color: var(--ink-soft);
