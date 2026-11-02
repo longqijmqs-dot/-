@@ -6,7 +6,8 @@ coverage/
 .pnpm-store/
 .pnpm-cache/
 .tmp/
-uploads/
+# 上传文件（仅项目根目录）
+/uploads/
 
 # 敏感文件（密钥、密码）
 *.pem
