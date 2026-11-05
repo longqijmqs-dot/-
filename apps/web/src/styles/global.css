@@ -1,21 +1,39 @@
-/* impeccable hook test — harmless comment */
 :root {
-  --ink: #14161a;
-  --ink-soft: #4b5158;
-  --ink-faint: #8a8f97;
-  --paper: #f6f3ee;
-  --paper-2: #efe9e0;
-  --surface: #fffefb;
-  --line: #ded6c9;
-  --line-strong: #c9bfae;
-  --amber: #d39a2c;
-  --amber-deep: #a97715;
-  --danger: #b3261e;
-  --danger-bg: #fbeae8;
-  --radius: 10px;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
-    'Microsoft YaHei', sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, Consolas, monospace;
+  /* 极简冷灰配色——不是暖米色，而是干净利落的灰白 */
+  --bg: #ffffff;
+  --bg-sidebar: #f9f9f9;
+  --bg-hover: #f0f0f0;
+  --bg-active: #e8e8e8;
+  --bg-input: #ffffff;
+  --bg-user-msg: #f0f0f0;
+  --bg-code: #f6f6f6;
+
+  --text: #1a1a1a;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --text-on-dark: #ffffff;
+
+  --border: #e5e5e5;
+  --border-hover: #d0d0d0;
+
+  /* 单一强调色——克制的蓝，不是 AI 紫 */
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-light: #eff6ff;
+
+  --danger: #dc2626;
+  --danger-bg: #fef2f2;
+
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  --sidebar-width: 280px;
+  --topbar-height: 52px;
 }
 
 * {
@@ -31,14 +49,17 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
-  color: var(--ink);
-  background: var(--paper);
+  color: var(--text);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 a {
   color: inherit;
+  text-decoration: none;
 }
 
 button,
@@ -47,8 +68,24 @@ input {
 }
 
 :focus-visible {
-  outline: 2px solid var(--amber-deep);
-  outline-offset: 2px;
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* 滚动条——细的、低调的 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b0;
 }
 
 @media (prefers-reduced-motion: reduce) {

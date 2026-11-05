@@ -10,9 +10,7 @@ const editingTitle = ref('');
 const creating = ref(false);
 
 async function handleCreate(): Promise<void> {
-  if (creating.value) {
-    return;
-  }
+  if (creating.value) return;
   creating.value = true;
   try {
     await chat.createConversation();
@@ -30,9 +28,7 @@ async function commitRename(): Promise<void> {
   const id = editingId.value;
   const title = editingTitle.value.trim();
   editingId.value = null;
-  if (!id || !title) {
-    return;
-  }
+  if (!id || !title) return;
   await chat.renameConversation(id, title);
 }
 
@@ -53,18 +49,18 @@ function formatTime(iso: string): string {
 <template>
   <aside class="sidebar">
     <div class="head">
-      <span class="label">会话</span>
       <button class="new" type="button" :disabled="creating" @click="handleCreate">
-        <span aria-hidden="true">＋</span>
-        {{ creating ? '创建中' : '新对话' }}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        <span>新对话</span>
       </button>
     </div>
 
     <div v-if="chat.loadingConversations" class="hint">加载中…</div>
 
     <div v-else-if="chat.conversations.length === 0" class="empty">
-      <p>还没有会话</p>
-      <p class="sub">点「新对话」开始第一段对话</p>
+      还没有对话
     </div>
 
     <ul v-else class="list">
@@ -86,12 +82,8 @@ function formatTime(iso: string): string {
             @click.stop
           />
           <span v-else class="title">{{ conversation.title }}</span>
-          <span class="time">{{ formatTime(conversation.updatedAt) }}</span>
         </div>
-        <div class="actions">
-          <button type="button" title="重命名" @click.stop="startRename(conversation)">重命名</button>
-          <button type="button" title="归档" @click.stop="handleArchive(conversation)">归档</button>
-        </div>
+        <div class="time">{{ formatTime(conversation.updatedAt) }}</div>
       </li>
     </ul>
   </aside>
@@ -101,39 +93,35 @@ function formatTime(iso: string): string {
 .sidebar {
   display: flex;
   flex-direction: column;
-  width: 274px;
-  flex: 0 0 274px;
-  border-right: 1px solid var(--line);
-  background: var(--paper-2);
+  width: var(--sidebar-width);
+  flex: 0 0 var(--sidebar-width);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
   min-height: 0;
 }
 
 .head {
+  padding: 12px 12px;
+}
+
+/* 新建对话按钮——ChatGPT 风格，边框按钮 */
+.new {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 16px 16px 12px;
-}
-
-.label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  color: var(--ink-faint);
-}
-
-.new {
-  border: 1px solid var(--line-strong);
-  background: var(--surface);
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 12px;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius);
+  font-size: 13px;
   cursor: pointer;
-  color: var(--ink);
+  color: var(--text);
+  transition: border-color 0.12s ease;
 }
 
 .new:hover:not(:disabled) {
-  border-color: var(--ink);
+  border-color: var(--border-hover);
 }
 
 .new:disabled {
@@ -143,43 +131,33 @@ function formatTime(iso: string): string {
 
 .hint,
 .empty {
-  padding: 24px 16px;
+  padding: 20px 16px;
   font-size: 13px;
-  color: var(--ink-faint);
+  color: var(--text-tertiary);
   text-align: center;
-}
-
-.empty p {
-  margin: 0 0 6px;
-}
-
-.empty .sub {
-  font-size: 12px;
-  color: var(--ink-faint);
 }
 
 .list {
   list-style: none;
   margin: 0;
-  padding: 0 8px 16px;
+  padding: 4px 8px 12px;
   overflow-y: auto;
   flex: 1;
 }
 
 .list li {
-  padding: 10px 10px 8px;
-  border-radius: 9px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  border: 1px solid transparent;
+  transition: background 0.1s ease;
 }
 
 .list li:hover {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--bg-hover);
 }
 
 .list li.active {
-  background: var(--surface);
-  border-color: var(--line-strong);
+  background: var(--bg-active);
 }
 
 .row {
@@ -191,16 +169,15 @@ function formatTime(iso: string): string {
 
 .title {
   font-size: 13.5px;
-  color: var(--ink);
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .time {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--ink-faint);
+  font-size: 11px;
+  color: var(--text-tertiary);
   flex: 0 0 auto;
 }
 
@@ -208,34 +185,9 @@ function formatTime(iso: string): string {
   width: 100%;
   font-size: 13px;
   padding: 3px 6px;
-  border: 1px solid var(--amber);
-  border-radius: 6px;
-  background: #fff;
-}
-
-.actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 6px;
-  opacity: 0;
-  transition: opacity 0.12s ease;
-}
-
-.list li:hover .actions,
-.list li.active .actions {
-  opacity: 1;
-}
-
-.actions button {
-  border: none;
-  background: none;
-  padding: 0;
-  font-size: 11.5px;
-  color: var(--ink-faint);
-  cursor: pointer;
-}
-
-.actions button:hover {
-  color: var(--amber-deep);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  outline: none;
 }
 </style>

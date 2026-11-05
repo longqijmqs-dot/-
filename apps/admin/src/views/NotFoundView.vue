@@ -26,27 +26,27 @@ const router = useRouter();
 h1 {
   font-size: 64px;
   font-weight: 700;
-  color: var(--ink-faint);
+  color: var(--text-tertiary);
   margin-bottom: 16px;
 }
 
 p {
   font-size: 16px;
-  color: var(--ink-soft);
+  color: var(--text-secondary);
   margin-bottom: 24px;
 }
 
 button {
-  border: 1px solid var(--line-strong);
-  background: var(--surface);
+  border: 1px solid var(--border-hover);
+  background: var(--bg);
   border-radius: 8px;
   padding: 10px 20px;
   cursor: pointer;
   font-size: 14px;
-  color: var(--ink);
+  color: var(--text);
 }
 
 button:hover {
-  background: var(--paper);
+  background: var(--bg);
 }
 </style>

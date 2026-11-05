@@ -15,33 +15,24 @@ const uploadError = ref<string | null>(null);
 
 function resize(): void {
   const el = inputRef.value;
-  if (!el) {
-    return;
-  }
+  if (!el) return;
   el.style.height = 'auto';
   el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
 }
 
-/** 点击回形针按钮 → 触发隐藏的文件选择器 */
 function triggerFilePick(): void {
   fileInputRef.value?.click();
 }
 
-/** 用户选了文件 → 立刻上传到后端 → 拿到 Attachment 放进预览区 */
 async function onFileSelected(event: Event): Promise<void> {
   const target = event.target as HTMLInputElement;
   const files = target.files;
-  if (!files || files.length === 0) {
-    return;
-  }
+  if (!files || files.length === 0) return;
 
-  // 限制最多 5 个附件（和契约一致）
   const remaining = 5 - attachments.value.length;
   const picked = Array.from(files);
   const toUpload = picked.slice(0, remaining);
 
-  // 收集所有失败原因：原来的写法每次 catch 都覆盖 uploadError，
-  // 传 3 个文件全失败时用户只看到最后一个的报错，另外两个静默消失
   const errors: string[] = [];
 
   if (picked.length > remaining) {
@@ -57,7 +48,6 @@ async function onFileSelected(event: Event): Promise<void> {
   uploadError.value = null;
 
   for (const file of toUpload) {
-    // 单个文件 10MB 限制（和后端一致，提前拦掉省一次往返）
     if (file.size > 10 * 1024 * 1024) {
       errors.push(`${file.name}：超过 10MB 上限（${formatFileSize(file.size)}）`);
       continue;
@@ -70,7 +60,6 @@ async function onFileSelected(event: Event): Promise<void> {
     }
   }
 
-  // 清空 input，否则选同一个文件不会触发 change 事件
   target.value = '';
   uploading.value = false;
   uploadError.value = errors.length > 0 ? errors.join('；') : null;
@@ -82,10 +71,7 @@ function removeAttachment(index: number): void {
 
 function submit(): void {
   const value = text.value.trim();
-  if (!value || props.streaming || props.disabled) {
-    return;
-  }
-  // 把附件一起发给父组件
+  if (!value || props.streaming || props.disabled) return;
   emit('send', value, [...attachments.value]);
   text.value = '';
   attachments.value = [];
@@ -107,40 +93,24 @@ defineExpose({
 
 <template>
   <div class="composer">
-    <!--
-      错误提示必须放在 attachments 判断之外！
-
-      踩过的坑：原来这个 div 嵌在 `v-if="attachments.length > 0"` 里面。
-      第一个文件就上传失败时 attachments 是空数组，提示框根本不渲染，
-      用户看到的是「点了上传完全没反应」，而控制台里明明有 400 错误。
-      这类「错误被 UI 吞掉」的 bug 极难排查，务必让失败路径永远可见。
-    -->
     <div v-if="uploadError" class="upload-error" role="alert">
       <span>{{ uploadError }}</span>
       <button type="button" class="dismiss" @click="uploadError = null">知道了</button>
     </div>
 
-    <!-- 附件预览区：在输入框上方，有附件时才显示 -->
     <div v-if="attachments.length > 0" class="preview-strip">
       <div v-for="(att, index) in attachments" :key="att.id" class="preview-chip">
-        <!-- 图片：显示缩略图 -->
         <img v-if="isImage(att.mimeType)" :src="att.url" :alt="att.name" class="thumb" />
-        <!-- 非图片：显示文件图标 + 名称 -->
-        <div v-else class="file-icon">📄</div>
-        <span class="file-name" :title="att.name">{{ att.name }}</span>
-        <span class="file-size">{{ formatFileSize(att.size) }}</span>
+        <div v-else class="file-name-only">{{ att.name }}</div>
         <button type="button" class="remove" @click="removeAttachment(index)" aria-label="移除附件">
-          ×
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
     </div>
 
     <div class="box">
-      <!--
-        隐藏的文件选择器。
-        accept 只是「选择框里的默认过滤」，用户仍可切到「所有文件」，
-        所以后端白名单才是真正的关卡，两边要保持一致。
-      -->
       <input
         ref="fileInputRef"
         type="file"
@@ -150,113 +120,104 @@ defineExpose({
         @change="onFileSelected"
       />
 
-      <!-- 回形针按钮：触发文件选择 -->
+      <!-- 附件按钮——极简图标 -->
       <button
         type="button"
         class="attach"
         :disabled="uploading || disabled"
-        :title="uploading ? '上传中…' : '添加附件（最多 5 个，单个 ≤ 10MB）'"
+        title="添加附件"
         @click="triggerFilePick"
       >
-        <span v-if="uploading" class="attach-icon spinning" aria-hidden="true">⏳</span>
-        <span v-else class="attach-icon" aria-hidden="true">📎</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+        </svg>
       </button>
 
       <textarea
         ref="inputRef"
         v-model="text"
         rows="1"
-        placeholder="说点什么… （Enter 发送，Shift + Enter 换行）"
+        placeholder="给 AI 发消息…"
         :disabled="disabled"
         @input="resize"
         @keydown="onKeydown"
       />
 
-      <button v-if="streaming" class="stop" type="button" @click="emit('stop')">停止生成</button>
+      <button v-if="streaming" class="stop" type="button" @click="emit('stop')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
+        <span>停止</span>
+      </button>
       <button v-else class="send" type="button" :disabled="disabled || !text.trim()" @click="submit">
-        发送
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+        </svg>
       </button>
     </div>
-
-    <p class="tip">回复由 AI 生成，可能存在错误，请自行核实。</p>
   </div>
 </template>
 
 <style scoped>
 .composer {
-  padding: 12px 24px 18px;
-  border-top: 1px solid var(--line);
-  background: var(--paper);
+  padding: 12px 24px 16px;
+  background: var(--bg);
 }
 
 .preview-strip {
-  max-width: 820px;
+  max-width: 750px;
   margin: 0 auto 8px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .preview-chip {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 8px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
   font-size: 12px;
   max-width: 200px;
 }
 
 .thumb {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   object-fit: cover;
-  border-radius: 5px;
-  flex: 0 0 28px;
+  border-radius: 4px;
+  flex: 0 0 24px;
 }
 
-.file-icon {
-  font-size: 16px;
-  flex: 0 0 20px;
-  text-align: center;
-}
-
-.file-name {
+.file-name-only {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--ink);
-}
-
-.file-size {
-  color: var(--ink-faint);
-  font-size: 11px;
-  flex: 0 0 auto;
+  color: var(--text);
 }
 
 .remove {
   border: none;
   background: none;
-  color: var(--ink-faint);
+  color: var(--text-tertiary);
   cursor: pointer;
-  font-size: 16px;
-  padding: 0 2px;
-  line-height: 1;
+  padding: 2px;
+  display: flex;
+  align-items: center;
 }
 
 .remove:hover {
-  color: var(--danger);
+  color: var(--text);
 }
 
 .upload-error {
-  max-width: 820px;
+  max-width: 750px;
   margin: 0 auto 8px;
-  padding: 9px 12px;
-  border: 1px solid rgba(179, 38, 30, 0.35);
+  padding: 8px 12px;
+  border: 1px solid rgba(220, 38, 38, 0.2);
   border-left: 3px solid var(--danger);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--danger-bg);
   color: var(--danger);
   font-size: 12.5px;
@@ -283,26 +244,22 @@ defineExpose({
   text-underline-offset: 2px;
 }
 
-.upload-error .dismiss:hover {
-  opacity: 0.7;
-}
-
+/* 输入框——ChatGPT 风格的圆角容器 */
 .box {
   display: flex;
   align-items: flex-end;
-  gap: 10px;
-  max-width: 820px;
+  gap: 8px;
+  max-width: 750px;
   margin: 0 auto;
   padding: 8px 8px 8px 14px;
-  border: 1px solid var(--line-strong);
-  border-radius: 14px;
-  background: var(--surface);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-input);
+  transition: border-color 0.15s ease;
 }
 
 .box:focus-within {
-  border-color: var(--amber);
-  box-shadow: 0 0 0 3px rgba(211, 154, 44, 0.14);
+  border-color: var(--text-tertiary);
 }
 
 .hidden-file {
@@ -315,49 +272,23 @@ defineExpose({
   height: 36px;
   border: none;
   background: transparent;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
   transition: background 0.12s ease;
 }
 
 .attach:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bg-hover);
+  color: var(--text);
 }
 
 .attach:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-}
-
-.attach-icon {
-  display: inline-block;
-}
-
-/* 上传中让沙漏轻微摆动，给用户「正在处理」的反馈 */
-.attach-icon.spinning {
-  animation: tick 1s ease-in-out infinite;
-}
-
-@keyframes tick {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-/* 尊重系统的「减少动态效果」偏好 */
-@media (prefers-reduced-motion: reduce) {
-  .attach-icon.spinning {
-    animation: none;
-    opacity: 0.8;
-  }
 }
 
 textarea {
@@ -370,51 +301,54 @@ textarea {
   line-height: 1.65;
   max-height: 200px;
   padding: 6px 0;
-  color: var(--ink);
+  color: var(--text);
 }
 
 textarea::placeholder {
-  color: var(--ink-faint);
+  color: var(--text-tertiary);
 }
 
+/* 发送按钮——圆形图标按钮，不像 AI 那样用胶囊文字按钮 */
 .send,
 .stop {
   flex: 0 0 auto;
+  width: 36px;
   height: 36px;
-  padding: 0 16px;
-  border-radius: 9px;
+  border-radius: var(--radius);
   border: none;
-  font-size: 13.5px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  transition: opacity 0.12s ease, background 0.12s ease;
 }
 
 .send {
-  background: var(--ink);
+  background: var(--text);
   color: #fff;
 }
 
+.send:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
 .send:disabled {
-  background: #b9b3a8;
+  background: var(--border);
+  color: var(--text-tertiary);
   cursor: not-allowed;
 }
 
 .stop {
   background: transparent;
-  border: 1px solid var(--line-strong);
-  color: var(--ink);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  gap: 4px;
+  width: auto;
+  padding: 0 14px;
 }
 
 .stop:hover {
   border-color: var(--danger);
   color: var(--danger);
-}
-
-.tip {
-  max-width: 820px;
-  margin: 8px auto 0;
-  font-size: 11.5px;
-  color: var(--ink-faint);
-  text-align: center;
 }
 </style>

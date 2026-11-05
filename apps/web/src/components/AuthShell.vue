@@ -135,7 +135,7 @@ defineProps<{
 .facts span {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--amber);
+  color: var(--accent);
 }
 
 .brand-foot {
@@ -151,7 +151,7 @@ defineProps<{
   align-items: center;
   justify-content: center;
   padding: 48px 40px;
-  background: var(--paper);
+  background: var(--bg);
 }
 
 .panel-inner {
@@ -164,7 +164,7 @@ defineProps<{
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.22em;
-  color: var(--amber-deep);
+  color: var(--accent);
 }
 
 .head h2 {
@@ -178,7 +178,7 @@ defineProps<{
   margin: 0;
   font-size: 14px;
   line-height: 1.6;
-  color: var(--ink-soft);
+  color: var(--text-secondary);
 }
 
 @media (max-width: 900px) {

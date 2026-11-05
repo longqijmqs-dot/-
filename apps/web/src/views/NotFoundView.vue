@@ -20,7 +20,7 @@ import { RouterLink } from 'vue-router';
   gap: 12px;
   padding: 24px;
   text-align: center;
-  background: var(--paper);
+  background: var(--bg);
 }
 
 .code {
@@ -28,7 +28,7 @@ import { RouterLink } from 'vue-router';
   font-family: var(--font-mono);
   font-size: 13px;
   letter-spacing: 0.3em;
-  color: var(--amber-deep);
+  color: var(--accent);
 }
 
 h1 {
@@ -39,14 +39,14 @@ h1 {
 .desc {
   margin: 0;
   font-size: 14px;
-  color: var(--ink-soft);
+  color: var(--text-secondary);
 }
 
 .primary {
   margin-top: 12px;
   padding: 10px 18px;
   border-radius: 9px;
-  background: var(--ink);
+  background: var(--text);
   color: #fff;
   text-decoration: none;
   font-size: 14px;

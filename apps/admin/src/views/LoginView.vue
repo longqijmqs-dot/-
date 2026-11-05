@@ -84,15 +84,15 @@ async function handleSubmit(): Promise<void> {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: var(--paper);
+  background: var(--bg);
 }
 
 .login-card {
   width: 100%;
   max-width: 400px;
   padding: 40px 32px;
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 }
@@ -111,13 +111,13 @@ async function handleSubmit(): Promise<void> {
 .logo h1 {
   font-size: 22px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--text);
   margin-bottom: 4px;
 }
 
 .subtitle {
   font-size: 13px;
-  color: var(--ink-faint);
+  color: var(--text-tertiary);
 }
 
 .error {
@@ -157,21 +157,21 @@ async function handleSubmit(): Promise<void> {
 .field label {
   font-size: 13px;
   font-weight: 500;
-  color: var(--ink-soft);
+  color: var(--text-secondary);
 }
 
 .field input {
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--border-hover);
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 14px;
-  background: var(--paper);
+  background: var(--bg);
   transition: border-color 0.2s;
 }
 
 .field input:focus {
   outline: none;
-  border-color: var(--amber);
+  border-color: var(--accent);
 }
 
 .submit {
@@ -180,7 +180,7 @@ async function handleSubmit(): Promise<void> {
   padding: 12px;
   font-size: 14px;
   font-weight: 600;
-  background: var(--ink);
+  background: var(--text);
   color: #fff;
   cursor: pointer;
   transition: opacity 0.2s;
@@ -202,11 +202,11 @@ async function handleSubmit(): Promise<void> {
 
 .link {
   font-size: 13px;
-  color: var(--ink-faint);
+  color: var(--text-tertiary);
   text-decoration: none;
 }
 
 .link:hover {
-  color: var(--amber);
+  color: var(--accent);
 }
 </style>

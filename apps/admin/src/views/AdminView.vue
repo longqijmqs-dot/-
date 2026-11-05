@@ -225,7 +225,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--paper);
+  background: var(--bg);
 }
 
 .topbar {
@@ -233,8 +233,8 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
 }
 
 .left {
@@ -260,21 +260,21 @@ onMounted(async () => {
 
 .user {
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--text-secondary);
 }
 
 .logout {
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--border-hover);
   background: transparent;
   border-radius: 6px;
   padding: 6px 12px;
   cursor: pointer;
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--text-secondary);
 }
 
 .logout:hover {
-  background: var(--paper);
+  background: var(--bg);
 }
 
 .main {
@@ -319,27 +319,27 @@ onMounted(async () => {
   flex-direction: column;
   gap: 8px;
   padding: 24px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--surface);
+  background: var(--bg);
 }
 
 .stat-label {
   font-size: 13px;
-  color: var(--ink-faint);
+  color: var(--text-tertiary);
 }
 
 .stat-value {
   font-size: 32px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--text);
 }
 
 .panel {
   margin-bottom: 32px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--surface);
+  background: var(--bg);
   padding: 24px;
 }
 
@@ -362,22 +362,22 @@ h2 {
 }
 
 .search-box input {
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--border-hover);
   border-radius: 6px;
   padding: 8px 12px;
   font-size: 13px;
   width: 240px;
-  background: var(--paper);
+  background: var(--bg);
 }
 
 .search-box input:focus {
   outline: none;
-  border-color: var(--amber);
+  border-color: var(--accent);
 }
 
 .search-box button {
   border: none;
-  background: var(--ink);
+  background: var(--text);
   color: #fff;
   border-radius: 6px;
   padding: 8px 16px;
@@ -396,8 +396,8 @@ h2 {
 .role-table th {
   text-align: left;
   padding: 12px;
-  border-bottom: 1px solid var(--line);
-  color: var(--ink-faint);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-tertiary);
   font-weight: 500;
   font-size: 12px;
 }
@@ -405,12 +405,12 @@ h2 {
 .user-table td,
 .role-table td {
   padding: 12px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--border);
 }
 
 .empty {
   text-align: center;
-  color: var(--ink-faint);
+  color: var(--text-tertiary);
   padding: 32px !important;
 }
 
@@ -439,22 +439,22 @@ h2 {
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 4px;
-  background: var(--paper-2);
-  color: var(--ink-soft);
+  background: var(--bg-sidebar);
+  color: var(--text-secondary);
 }
 
 .action {
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--border-hover);
   background: transparent;
   border-radius: 6px;
   padding: 6px 12px;
   cursor: pointer;
   font-size: 12px;
-  color: var(--ink-soft);
+  color: var(--text-secondary);
 }
 
 .action:hover {
-  background: var(--paper);
+  background: var(--bg);
 }
 
 .action.danger {
@@ -473,17 +473,17 @@ h2 {
   gap: 12px;
   margin-top: 20px;
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--text-secondary);
 }
 
 .pagination button {
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--border-hover);
   background: transparent;
   border-radius: 6px;
   padding: 6px 12px;
   cursor: pointer;
   font-size: 12px;
-  color: var(--ink-soft);
+  color: var(--text-secondary);
 }
 
 .pagination button:disabled {
