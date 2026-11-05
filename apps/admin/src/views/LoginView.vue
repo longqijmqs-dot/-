@@ -17,7 +17,7 @@ async function handleSubmit(): Promise<void> {
   loading.value = true;
   try {
     await auth.login(email.value.trim(), password.value);
-    const redirect = (route.query.redirect as string) || '/admin/dashboard';
+    const redirect = (route.query.redirect as string) || '/dashboard';
     router.push(redirect);
   } catch (e) {
     error.value = (e as Error).message || '登录失败，请检查邮箱和密码';
